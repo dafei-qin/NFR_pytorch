@@ -4,6 +4,10 @@ This is the official implementation of the paper 'Neural Face Rigging for Animat
 
 ## [Project Page](https://dafei-qin.github.io/NFR/) | [Paper](https://arxiv.org/abs/2305.08296)
 
+Why try NFR?
+
+NFR can transfer facial animations to any customized face mesh, even with different topology, without any labor for manual rigging or data capturing. For facial meshes obtained from any source, you can quickly retarget exising animations onto the mesh and see the results in real-time.
+
 ## Testing Setup
 
 **This release is tested under Ubuntu 20.04, with a RTX 4090 GPU. Other GPU models with CUDA should be OK as well.** 
@@ -54,11 +58,15 @@ Here's the plot when you successfully run the script. You can interact with the 
     - Buttons:
         - code_idx: input (0-52) the FACS code index to the terminal
         - input/next/random: change the source expression index
-        - iden: change the source identity (Currently we have two from ICT)
+        - iden: change the source identity
     - Sliders:
         - AU scale: Change the intensity of the FACS code specified by *code_idx*
         - scale: Scale uniformly the target mesh
         - x/y/z shift: Shift the target mesh
+
+### Pre-processed facial animation sequences
+Currently we have two pre-processed facial animation sequences, one from [ICT](https://github.com/ICT-VGL/ICT-FaceKit) and another from [Multiface](https://github.com/facebookresearch/multiface). You can swith between them by changing the `dataset` and `data_head` variables in the `config/test.yml` file. 
+
 ### Using your customized data
 
 You can test with your own mesh as the target. This has two requirement:
@@ -81,3 +89,7 @@ The training module will be released later.
           booktitle = {SIGGRAPH 2023 Conference Papers},
       }
 ```
+
+## Acknowledgement
+
+This project uses code from [ICT](https://github.com/ICT-VGL/ICT-FaceKit), [Multiface][https://github.com/facebookresearch/multiface], [Diffusion-Net](https://github.com/nmwsharp/diffusion-net), data from ICT and Multiface, testing mesh templates from ICT, Multiface, [COMA](https://github.com/anuragranj/coma), [FLAME](https://flame.is.tue.mpg.de/), [MeshTalk](https://github.com/facebookresearch/meshtalk). Thank you!
