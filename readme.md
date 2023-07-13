@@ -44,17 +44,17 @@ python test_user.py -c config/test.yml
 
 7. Interactive visualization
 
-![](fig/vedo.png)
+![](fig/vedo.jpg)
 
 - Zone 0: The source mesh
 - Zone 1: The target mesh (with source mesh's expression transfered)
 - Zone 2: The source mesh under ICT Blendshape space
 - Zone 3: Interactive buttons and sliders
-    -- Buttons:
+    - Buttons:
         - code_idx: input (0-52) the FACS code index to the terminal
         - input/next/random: change the source expression index
         - iden: change the source identity (Currently we have two from ICT)
-    -- Sliders:
+    - Sliders:
         - AU scale: Change the intensity of the FACS code specified by *code_idx*
         - scale: Scale uniformly the target mesh
         - x/y/z shift: Shift the target mesh
