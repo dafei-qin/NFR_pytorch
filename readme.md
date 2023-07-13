@@ -6,9 +6,9 @@ This is the official implementation of the paper 'Neural Face Rigging for Animat
 
 ## Testing Setup
 
-** This release is tested under Ubuntu 20.04, with a RTX 4090 GPU. Other GPU model should be supported as well. ** 
-** The testing module utilize [vedo](https://vedo.embl.es/) for interactive visualization. Thus a display is required. **
-** Windows is currently not supported unless you manually install the pytorch3d package following [their official guide](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md). **
+**This release is tested under Ubuntu 20.04, with a RTX 4090 GPU. Other GPU model should be supported as well.** 
+**The testing module utilize [vedo](https://vedo.embl.es/) for interactive visualization. Thus a display is required.**
+**Windows is currently not supported unless you manually install the pytorch3d package following [their official guide](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md).**
 
 1. Create an environment called NFR
 ```shell
