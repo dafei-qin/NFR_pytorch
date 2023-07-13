@@ -6,7 +6,7 @@ This is the official implementation of the paper 'Neural Face Rigging for Animat
 
 ## Testing Setup
 
-**This release is tested under Ubuntu 20.04, with a RTX 4090 GPU. Other GPU model should be OK as well.** 
+**This release is tested under Ubuntu 20.04, with a RTX 4090 GPU. Other GPU models should be OK as well.** 
 
 **The testing module utilize [vedo](https://vedo.embl.es/) for interactive visualization. Thus a display is required.**
 
@@ -18,7 +18,7 @@ conda create -n NFR python=3.9
 conda activate NFR
 ```
 
-2. Recommand mamba to accelerate the installation process
+2. Recommend mamba to accelerate the installation process
 ```shell
 conda install mamba -c conda-forge
 ```
@@ -47,7 +47,7 @@ python test_user.py -c config/test.yml
 ![](fig/vedo.jpg)
 
 - Zone 0: The source mesh
-- Zone 1: The target mesh (with source mesh's expression transfered)
+- Zone 1: The target mesh (with source mesh's expression transferred)
 - Zone 2: The source mesh under ICT Blendshape space
 - Zone 3: Interactive buttons and sliders
     - Buttons:
@@ -60,7 +60,7 @@ python test_user.py -c config/test.yml
         - x/y/z shift: Shift the target mesh
 ### Using your customized data
 
-You can test your own mesh. Remeber to first align it in blender via the align.blend file!
+You can test your own mesh. Remember to first align it in blender via the align.blend file!
 
 ## Training
 
