@@ -6,7 +6,7 @@ This is the official implementation of the paper 'Neural Face Rigging for Animat
 
 ## Testing Setup
 
-**This release is tested under Ubuntu 20.04, with a RTX 4090 GPU. Other GPU model should be supported as well.** 
+**This release is tested under Ubuntu 20.04, with a RTX 4090 GPU. Other GPU model should be OK as well.** 
 
 **The testing module utilize [vedo](https://vedo.embl.es/) for interactive visualization. Thus a display is required.**
 
@@ -42,6 +42,9 @@ pip install potpourri3d trimesh open3d transforms3d libigl robust_laplacian vedo
 python test_user.py -c config/test.yml
 ```
 
+7. Interactive visualization
+
+![](fig/vedo.png)
 
 ### Using your customized data
 
