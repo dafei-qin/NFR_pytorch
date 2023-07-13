@@ -34,7 +34,7 @@ mamba install pytorch=1.12.1 cudatoolkit=11.3 pytorch-sparse=0.6.15 pytorch3d=0.
 pip install potpourri3d trimesh open3d transforms3d libigl robust_laplacian vedo
 ```
 
-5. Download the preprocess data and the pretrained model here: [Google Drive](). Place them in the root directory of this repo.
+5. Download the preprocess data and the pretrained model here: [Google Drive](https://drive.google.com/file/d/1cXXeU3AtpoGEVz2mhlWTSG1dEbAtCmD1/view?usp=sharing). Place them in the root directory of this repo.
 
 6. Run!
 
@@ -46,6 +46,18 @@ python test_user.py -c config/test.yml
 
 ![](fig/vedo.png)
 
+- Zone 0: The source mesh
+- Zone 1: The target mesh (with source mesh's expression transfered)
+- Zone 2: The source mesh under ICT Blendshape space
+- Zone 3: Interactive buttons and sliders
+    -- Buttons:
+        - code_idx: input (0-52) the FACS code index to the terminal
+        - input/next/random: change the source expression index
+        - iden: change the source identity (Currently we have two from ICT)
+    -- Sliders:
+        - AU scale: Change the intensity of the FACS code specified by *code_idx*
+        - scale: Scale uniformly the target mesh
+        - x/y/z shift: Shift the target mesh
 ### Using your customized data
 
 You can test your own mesh. Remeber to first align it in blender via the align.blend file!
