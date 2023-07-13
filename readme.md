@@ -28,7 +28,9 @@ mamba install pytorch=1.12.1 cudatoolkit=11.3 pytorch-sparse=0.6.15 pytorch3d=0.
 pip install potpourri3d trimesh open3d transforms3d libigl robust_laplacian vedo
 ```
 
-5. Run!
+5. Download the preprocess data and the pretrained model here: [Google Drive](). Place them in the root directory of this repo.
+
+6. Run!
 
 ```shell
 python test_user.py -c config/test.yml
@@ -36,7 +38,7 @@ python test_user.py -c config/test.yml
 
 ### Using your customized data
 
-You can test your own mesh. Remeber to first align it using the align.blend!
+You can test your own mesh. Remeber to first align it in blender via the align.blend file!
 
 ## Training
 
