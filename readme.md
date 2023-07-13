@@ -44,6 +44,7 @@ python test_user.py -c config/test.yml
 
 7. Interactive visualization
 
+Here's the plot when you successfully run the script. You can interact with the sliders and buttons to change the expression of the source mesh, and manually adjust the expression by FACS-like codes.
 ![](fig/vedo.jpg)
 
 - Zone 0: The source mesh
