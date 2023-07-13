@@ -92,4 +92,4 @@ The training module will be released later.
 
 ## Acknowledgement
 
-This project uses code from [ICT](https://github.com/ICT-VGL/ICT-FaceKit), [Multiface][https://github.com/facebookresearch/multiface], [Diffusion-Net](https://github.com/nmwsharp/diffusion-net), data from ICT and Multiface, testing mesh templates from ICT, Multiface, [COMA](https://github.com/anuragranj/coma), [FLAME](https://flame.is.tue.mpg.de/), [MeshTalk](https://github.com/facebookresearch/meshtalk). Thank you!
+This project uses code from [ICT](https://github.com/ICT-VGL/ICT-FaceKit), [Multiface](https://github.com/facebookresearch/multiface), [Diffusion-Net](https://github.com/nmwsharp/diffusion-net), data from ICT and Multiface, testing mesh templates from ICT, Multiface, [COMA](https://github.com/anuragranj/coma), [FLAME](https://flame.is.tue.mpg.de/), [MeshTalk](https://github.com/facebookresearch/meshtalk). Thank you!
