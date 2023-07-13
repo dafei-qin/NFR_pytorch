@@ -6,9 +6,9 @@ This is the official implementation of the paper 'Neural Face Rigging for Animat
 
 ## Testing Setup
 
-**This release is tested under Ubuntu 20.04, with a RTX 4090 GPU. Other GPU models should be OK as well.** 
+**This release is tested under Ubuntu 20.04, with a RTX 4090 GPU. Other GPU models with CUDA should be OK as well.** 
 
-**The testing module utilize [vedo](https://vedo.embl.es/) for interactive visualization. Thus a display is required.**
+**The testing module utilizes [vedo](https://vedo.embl.es/) for interactive visualization. Thus a display is required.**
 
 **Windows is currently not supported unless you manually install the pytorch3d package following [their official guide](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md).**
 
@@ -60,7 +60,10 @@ python test_user.py -c config/test.yml
         - x/y/z shift: Shift the target mesh
 ### Using your customized data
 
-You can test your own mesh. Remember to first align it in blender via the align.blend file!
+You can test with your own mesh as the target. This has two requirement:
+1. There should be no mouth/eye/nose sockets and eye balls inside the face. Otherwise bad deformations may occur on those area. 
+2. The mouth and eyes need to be cut for correct global solving. Please refer to the preprocessed meshes in `test-mesh` as examples.
+3. Remember to roughly align your mesh to the examples in blender via the align.blend file!
 
 ## Training
 
