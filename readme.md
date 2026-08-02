@@ -76,7 +76,120 @@ You can test with your own mesh as the target. This has two requirement:
 
 ## Training
 
-The training module will be released later. 
+### Additional dependencies
+
+On top of the testing setup, training needs:
+
+```
+mamba install -c pyg pytorch-scatter pytorch-sparse
+pip install tensorboardX
+```
+
+Install `pytorch-scatter`/`pytorch-sparse` through conda rather than pip: pip
+falls back to building them from source, which fails whenever the system CUDA
+version differs from the one PyTorch was compiled against.
+
+Note that `dataset_preprocess.py` invokes helper scripts through
+`subprocess.call(['python', ...])` **without checking the return code**. Activate
+the environment first, and check the produced file counts after each step —
+a failing sub-step is otherwise silent.
+
+### Data
+
+The training data is derived from [ICT-FaceKit](https://github.com/ICT-VGL/ICT-FaceKit)
+and [Multiface](https://github.com/facebookresearch/multiface). The full set
+used in the paper is about 800GB; to get the pipeline running first, we provide
+a smaller pack covering the `ICT_single_coarse` dataset.
+
+**Sample data pack** (3.0GB, *link to be added*) — 40 identities, containing
+only the files that cannot be regenerated:
+
+```
+data/ICT_single_coarse/{train,val,test}/*_processed_matrix.pkl
+data/ICT_single_coarse/*_neutral.obj
+data/ICT_single_coarse/{iden_exp_weights_single.npz,ICT_single_exp_weights.npy,gradients_std.npy}
+data/ICT_live_100/gradients_std.npy   # referenced by std_file
+data/MF_all_v5/img_stat.pkl           # referenced by img_file
+```
+
+Unpack it at the repository root and regenerate the derived tensors:
+
+```
+python dataset_preprocess.py \
+    --data_dir ./data/ICT_single_coarse \
+    --save_data_dir ./data/ICT_single_coarse \
+    -pi -pg -pd --num_threads 8
+```
+
+The four switches are sequential — `-pm` converts raw meshes into the
+`_processed_matrix.pkl` files that the other three read, so it is the only step
+the sample pack lets you skip:
+
+| Switch | Produces | Per identity | Time |
+|---|---|---|---|
+| `-pm` | `*_processed_matrix.pkl` | 75 MB | depends on mesh count |
+| `-pi` | `*_imgs.npy`, `*_imgs.pt`, neutral renders | 400 MB | ~14 s |
+| `-pg` | `*_grad.pt` | 51 MB | ~25 s |
+| `-pd` | `*_dfn_info.pt` | 270 MB | ~7 s |
+
+Regenerating all 40 identities takes roughly 30 minutes and 32GB of disk.
+
+### Running
+
+```
+python FWH_run.py -c config/train_single.yaml
+```
+
+`config/train_single.yaml` trains on `ICT_single_coarse` alone and is the
+recommended starting point. `config/train_release.yaml` is the full setup
+(`dataset: ICT_all`), which loads five ICT datasets at once.
+
+Measured on a single Tesla T4 (16GB) with `--batch_size 4`:
+
+| | `train_single.yaml` | `train_release.yaml` |
+|---|---|---|
+| Datasets | ICT_single_coarse | ICT_single_coarse + random_50 + live_100 + shift_scale + holes |
+| Peak RAM | ~24 GB | **~320 GB** |
+| Disk | ~32 GB | ~550 GB |
+| Data loading | 169 s first run, 35 s cached | hours |
+| Per epoch | 159 s train + 28 s eval | — |
+
+The RAM figure for the full config is not a typo. `--debug` only truncates the
+*training* identities; validation and test splits are always loaded in full, and
+a single `ICT_random_50` identity is ~28GB. Use `train_single.yaml` unless you
+have a machine with several hundred GB of RAM.
+
+### Preprocessing your own meshes
+
+To turn a folder of per-identity mesh sequences into a training/testing dataset:
+
+1. Roughly align one of your meshes to the examples in Blender using
+   `align.blend`, then build the transform with `myutils.blender2transform()`
+   and pickle it.
+2. Convert the sequences (one subfolder of `.obj` files per identity):
+
+   ```
+   python s_data/process_obj.py --data_dir <your_meshes> \
+       --transform <transform.pkl> --output_dir <out>
+   ```
+
+3. Compute deformation gradients and the derived tensors:
+
+   ```
+   python dataset_preprocess.py --data_dir <out>/npy \
+       --save_data_dir ./data/<your_dataset> \
+       --sequences -pm -pi -pg -pd --num_threads 8
+   ```
+
+   Without `--split` everything lands in `test/`, which is what you want for
+   retargeting. Add `--split` to get a train/val/test division, but note it
+   assigns the last two sequences of each identity to test and the two before
+   them to validation — so each identity needs at least five sequence files for
+   the training split to be non-empty.
+
+The same mesh requirements as in [Using your customized data](#using-your-customized-data)
+apply. One extra constraint: identity names must not contain underscores, since
+the neutral mesh is looked up by splitting the filename on `_`.
 
 ## Citation
 
