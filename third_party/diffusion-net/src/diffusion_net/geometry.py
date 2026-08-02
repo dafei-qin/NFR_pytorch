@@ -224,7 +224,10 @@ def build_grad_custom(verts, edges, edge_tangent_vectors, vert_edge_outgoing,  r
     lhs_mat_all = [lhs_mat_all[i] @ edge_tangent_vectors[vert_edge_outgoing[i]].T for i in range(N)]
     mat = [lhs_mat_all[i] @ rhs_matrix_list[i] for i in range(N)]
     sol_coefs = [(mat[i][0, :] + 1j * mat[i][1, :]).T for i in range(N)]
-    data_vals = np.concatenate(np.array([sol_coefs[i] for i in range(N)]))
+    # sol_coefs is a ragged list (one entry per vertex, length = its outgoing edge
+    # count), so wrapping it in np.array() raises on numpy >= 1.24. concatenate
+    # already takes a list of arrays.
+    data_vals = np.concatenate(sol_coefs)
     # lhs_mid = [lhs_mat_all[i].T @ lhs_mat_all[i]]
     # row_inds = np.array(row_inds)
     # col_inds = np.array(col_inds)

@@ -225,7 +225,7 @@ if __name__ == '__main__':
         os.makedirs(os.path.join(args.save_data_dir, 'test'), exist_ok=True)
     else:
         print('All data go to the testing directory.')
-        os.makedirs(os.path.join(args.save_data_dir, 'test'))
+        os.makedirs(os.path.join(args.save_data_dir, 'test'), exist_ok=True)
 
 
     data_dir = args.data_dir
