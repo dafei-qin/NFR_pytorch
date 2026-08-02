@@ -159,6 +159,12 @@ The RAM figure for the full config is not a typo. `--debug` only truncates the
 a single `ICT_random_50` identity is ~28GB. Use `train_single.yaml` unless you
 have a machine with several hundred GB of RAM.
 
+Two further caveats for the full config: the augmented datasets
+(`ICT_shift_scale`, `ICT_holes`) expect an `exp_vecs.npy` holding their 92x53
+FACS coefficients, which ships with the preprocessed data and is not produced by
+any script here; and `*_imgs.npy` and `*_imgs.pt` store the same renders twice,
+so roughly half the image footprint is redundant.
+
 ### Preprocessing your own meshes
 
 To turn a folder of per-identity mesh sequences into a training/testing dataset:
