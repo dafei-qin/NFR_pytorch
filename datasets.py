@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from myutils import convert_per_face_to_per_vertex, face_to_vertex_torch
+from myutils.myutils import convert_per_face_to_per_vertex, face_to_vertex_torch
 from trimesh import geometry
 import igl
 import os
@@ -135,8 +135,9 @@ class my_dataset(torch.utils.data.Dataset):
                 self.inputs_source_f = torch.cat([self.inputs_source_f, self.neutral_landmarks.unsqueeze(0).expand(self.inputs_source_f.shape[0], -1)], dim=-1)
 
 
-        # Per vertex
-        self.inputs_source_v = torch.cat((self.neutral_verts, torch.from_numpy(igl.per_vertex_normals(self.neutral_verts.numpy(), self.face.numpy()))), dim=-1) 
+        # Per vertex. igl returns float64, which would promote the whole tensor to double
+        # and break the float32 dfn identity encoder, so cast the normals back explicitly.
+        self.inputs_source_v = torch.cat((self.neutral_verts, torch.from_numpy(igl.per_vertex_normals(self.neutral_verts.numpy(), self.face.numpy())).float()), dim=-1)
         if self.use_wks:
             self.inputs_source_v = torch.cat([self.inputs_source_v, self.neutral_wks], dim=-1)
         if self.use_landmarks:

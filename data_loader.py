@@ -6,7 +6,7 @@ import time
 sys.path.append('./third_party/diffusion-net/src')
 import diffusion_net
 from deformation_transfer import Transfer, Mesh
-
+from myutils.myutils import positional_encoder
 import torch
 import numpy as np
 
@@ -19,7 +19,7 @@ import logging
 from glob import glob
 
 
-def load_data(neutrals_dir, datasets, batch_size, normalizer, feature_type='cents&norms', use_wks=False, wks_normalizer=None, global_encoder='pn', device='cuda:0', cache_dir='/media/qindafei/SSD/face/cache',zero_mean=False, use_f=True, use_source_v=False, only_iden=False, exp_per_iden=1, use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, dfn_info_per_loader=True, random_dfn_info=False, grad=False):
+def load_data(neutrals_dir, datasets, batch_size, normalizer, feature_type='cents&norms', use_wks=False, wks_normalizer=None, global_encoder='pn', device='cuda:0', cache_dir='./cache',zero_mean=False, use_f=True, use_source_v=False, only_iden=False, exp_per_iden=1, use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, dfn_info_per_loader=True, random_dfn_info=False, grad=False):
 
     transfs = []
     neutrals = []
@@ -39,7 +39,7 @@ def load_data(neutrals_dir, datasets, batch_size, normalizer, feature_type='cent
 
     total_num_data = {'train':0, 'val': 0, 'test':0}
 
-    logging.info('Loading data...')
+    # logging.info(f'Loading data...')
     logging.info(f'Using {feature_type} as inputs to the feature extractor')
     
     for dataset_type in datasets.keys(): # train, val, test
@@ -137,7 +137,9 @@ def load_data(neutrals_dir, datasets, batch_size, normalizer, feature_type='cent
 
 
 
-def load_data_ict_live(data_dir, data_head, batch_size, n_identity, normalizer, feature_type='cents&norms', only_test=False, global_encoder='pn',  use_wks=False, wks_normalizer=None, device='cuda:0', cache_dir='/media/qindafei/SSD/face/cache', use_chol=False, zero_mean=False, use_f=True, use_source_v=False, use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, random_dfn_info=False, grad=False, dfn_info_per_loader=False):
+
+def load_data_ict_live(data_dir, data_head, batch_size, n_identity, normalizer, feature_type='cents&norms', only_test=False, global_encoder='pn',  use_wks=False, wks_normalizer=None, device='cuda:0', cache_dir='./cache', use_chol=False, zero_mean=False, use_f=True, use_source_v=False, use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, random_dfn_info=False, grad=False, dfn_info_per_loader=False):
+    print(f'Loading {data_head} data...')
     if os.path.exists(os.path.join(data_dir, data_head, f'expression_vecs_train.npy')):
         exp_vec_train = np.load(os.path.join(data_dir, data_head, f'expression_vecs_train.npy'))
         exp_vec_val = np.load(os.path.join(data_dir, data_head, f'expression_vecs_val.npy'))
@@ -189,10 +191,162 @@ def load_data_ict_live(data_dir, data_head, batch_size, n_identity, normalizer, 
     
     return iden_vec, exp_vec_train, exp_vec_val, exp_vec_test, *load_data(neutral_dirs, datasets, batch_size=batch_size, normalizer=normalizer, use_wks=use_wks, wks_normalizer=wks_normalizer, feature_type=feature_type, global_encoder=global_encoder, device=device, cache_dir=cache_dir, use_f=use_f, use_source_v=use_source_v, use_landmarks=use_landmarks, landmark_normalizer=landmark_normalizer, use_img=use_img, img_normalizer=img_normalizer, use_pix2face=use_pix2face, random_dfn_info=random_dfn_info, grad=grad, dfn_info_per_loader=dfn_info_per_loader)
 
+def load_data_ict_random(data_dir, data_head, batch_size, n_identity, normalizer, feature_type='cents&norms', only_test=False,  global_encoder='pn',use_wks=False, wks_normalizer=None, device='cuda:0', cache_dir='./cache', use_chol=False, zero_mean=False, use_f=True, use_source_v=False, use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, random_dfn_info=False, grad=False, dfn_info_per_loader=False):
+    print(f'Loading {data_head} data...')
+    with open(os.path.join(data_dir, data_head, f'iden_exp_weights_single.pkl'), 'rb') as f:
+        iden_vec, exp_vec = pickle.load(f).values()
+    identities_train = sorted(glob(os.path.join(data_dir, data_head, 'train/*')))
+    identities_train = [_[:-8] for _ in identities_train if 'imgs.pt' in _][:n_identity]
+
+    identities_val = sorted(glob(os.path.join(data_dir, data_head, 'val/*')))
+    identities_val = [_[:-8] for _ in identities_val if 'imgs.pt' in _]
+
+    identities_test = sorted(glob(os.path.join(data_dir, data_head, 'test/*')))
+    identities_test = [_[:-8] for _ in identities_test if 'imgs.pt' in _]
+    # identities = [_[:3] for _ in identities if _.endswith('obj') and 'neu' in _]
+    if only_test:
+        identities = {'val': identities_val, 'test': identities_test}
+    else:
+        identities = {'train': identities_train, 'val': identities_val, 'test': identities_test}
+
+    identities_idx = []
+    for name, v in identities.items():
+        if only_test is True:
+            if name == 'train':
+                continue
+        for _ in v:
+            identities_idx.append(int(os.path.basename(_)))
+    iden_vec = iden_vec[identities_idx]
+    if only_test is True:
+        datasets = {
+            'val': identities_val,
+            'test': identities_test
+        }
+    else:
+        datasets = {
+            'train': identities_train,
+            'val': identities_val,
+            'test': identities_test
+        }
 
 
-def load_data_mf_v3(data_dir, data_head, batch_size, n_identity, normalizer, use_wks=False, wks_normalizer=None, feature_type='cents&norms', only_test=False, global_encoder='pn', positional_encoding=False, number_of_pe=10, use_hks=False, device='cuda:0', cache_dir='/media/qindafei/SSD/face/cache', use_chol=False, zero_mean=False, use_f=True, use_source_v=False, use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, shuffle=False, random_dfn_info=False, grad=False, dfn_info_per_loader=False):
+    neutral_dirs = [os.path.join(data_dir, data_head, os.path.basename(iden) + '_neutral.obj') for iden_list in identities.values() for iden in iden_list]
+    for d in neutral_dirs:
+        # print(d)
+        assert os.path.exists(d)
 
+        
+
+    return exp_vec, iden_vec, *load_data(neutral_dirs, datasets, batch_size=batch_size, normalizer=normalizer, use_wks=use_wks, wks_normalizer=wks_normalizer, feature_type=feature_type, global_encoder=global_encoder, device=device, cache_dir=cache_dir, use_f=use_f, use_source_v=use_source_v, use_landmarks=use_landmarks, landmark_normalizer=landmark_normalizer, use_img=use_img, img_normalizer=img_normalizer, use_pix2face=use_pix2face, random_dfn_info=random_dfn_info, grad=grad, dfn_info_per_loader=dfn_info_per_loader)
+
+def load_data_ict_argument(data_dir, data_head, batch_size, n_identity, normalizer, feature_type='cents&norms', only_test=False,  global_encoder='pn',use_wks=False, wks_normalizer=None, device='cuda:0', cache_dir='./cache', use_chol=False, zero_mean=False, use_f=True, use_source_v=False, use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, random_dfn_info=False, grad=False, dfn_info_per_loader=False):
+    print(f'Loading {data_head} data...')
+    exp_vec = np.load(os.path.join(data_dir, data_head, 'exp_vecs.npy'))
+    identities_train = sorted(glob(os.path.join(data_dir, data_head, 'train/*')))
+    import random
+    random.shuffle(identities_train)
+    identities_train = sorted(glob(os.path.join(data_dir, data_head, 'train/*')))
+    identities_train = [_[:-21] for _ in identities_train if 'matrix' in _][:n_identity]
+
+    identities_val = sorted(glob(os.path.join(data_dir, data_head, 'val/*')))
+    identities_val = [_[:-21] for _ in identities_val if 'matrix' in _][:10]
+
+    identities_test = sorted(glob(os.path.join(data_dir, data_head, 'test/*')))
+    identities_test = [_[:-21] for _ in identities_test if 'matrix' in _][:10]
+    # identities = [_[:3] for _ in identities if _.endswith('obj') and 'neu' in _]
+    if only_test:
+        identities = {'val': identities_val, 'test': identities_test}
+    else:
+        identities = {'train': identities_train, 'val': identities_val, 'test': identities_test}
+
+    # identities_idx = []
+    # for name, v in identities.items():
+    #     if only_test is True:
+    #         if name == 'train':
+    #             continue
+    #     for _ in v:
+    #         identities_idx.append(int(os.path.basename(_)))
+    # iden_vec = iden_vec[identities_idx]
+    if only_test is True:
+        datasets = {
+            'val': identities_val,
+            'test': identities_test
+        }
+    else:
+        datasets = {
+            'train': identities_train,
+            'val': identities_val,
+            'test': identities_test
+        }
+
+
+    neutral_dirs = [os.path.join(data_dir, data_head, os.path.basename(iden) + '_neutral.obj') for iden_list in identities.values() for iden in iden_list]
+    for d in neutral_dirs:
+        assert os.path.exists(d)
+
+        
+
+    return exp_vec, *load_data(neutral_dirs, datasets, batch_size=batch_size, normalizer=normalizer, use_wks=use_wks, wks_normalizer=wks_normalizer, feature_type=feature_type, global_encoder=global_encoder, device=device, cache_dir=cache_dir, use_f=use_f, use_source_v=use_source_v,use_landmarks=use_landmarks, landmark_normalizer=landmark_normalizer, use_img=use_img, img_normalizer=img_normalizer, use_pix2face=use_pix2face, random_dfn_info=random_dfn_info, grad=grad, dfn_info_per_loader=dfn_info_per_loader)
+
+def load_data_ict_all(data_dir, data_head, batch_size, n_identity, normalizer, use_wks=False, wks_normalizer=None, feature_type='cents&norms', only_test=False, global_encoder='pn', device='cuda:0', cache_dir='./cache', use_f=True, use_source_v=False, use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, random_dfn_info=False, grad=False, dfn_info_per_loader=False):
+    print(f'Loading {data_head} data...')
+
+    iden_vec, exp_vec = np.load(os.path.join(data_dir, data_head, 'iden_exp_weights_single.npz')).values()
+    exp_weights = np.load(os.path.join(data_dir, data_head, 'ICT_single_exp_weights.npy')) # Weights for expressions to emphasize subtle difference around the eyes.
+    weights = (exp_vec > 0) * exp_weights
+    weights_new = np.zeros_like(weights)
+    for idx in range(len(weights)):
+        if weights[idx].sum() == 0:
+            weights_new[idx][0] = 1
+        else:
+            weights_new[idx] = weights[idx]
+    weights_new = np.array([_[_ > 0].mean() for _ in weights_new]).astype(np.float32)
+
+
+    identities_train = sorted(glob(os.path.join(data_dir, data_head, 'train/*')))
+    identities_train = [_[:-8] for _ in identities_train if 'imgs.pt' in _][:n_identity]
+
+    identities_val = sorted(glob(os.path.join(data_dir, data_head, 'val/*')))
+    identities_val = [_[:-8] for _ in identities_val if 'imgs.pt' in _]
+
+    identities_test = sorted(glob(os.path.join(data_dir, data_head, 'test/*')))
+    identities_test = [_[:-8] for _ in identities_test if 'imgs.pt' in _]
+    # identities = [_[:3] for _ in identities if _.endswith('obj') and 'neu' in _]
+    if only_test:
+        identities = {'val': identities_val, 'test': identities_test}
+    else:
+        identities = {'train': identities_train, 'val': identities_val, 'test': identities_test}
+
+    identities_idx = []
+    for name, v in identities.items():
+        if only_test is True:
+            if name == 'train':
+                continue
+        for _ in v:
+            identities_idx.append(int(os.path.basename(_)))
+    iden_vec = iden_vec[identities_idx]
+    if only_test is True:
+        datasets = {
+            'val': identities_val,
+            'test': identities_test
+        }
+    else:
+        datasets = {
+            'train': identities_train,
+            'val': identities_val,
+            'test': identities_test
+        }
+
+
+    neutral_dirs = [os.path.join(data_dir, data_head, os.path.basename(iden) + '_neutral.obj') for iden_list in identities.values() for iden in iden_list]
+    
+
+
+    return weights_new, exp_vec, iden_vec, *load_data(neutral_dirs, datasets, batch_size=batch_size, normalizer=normalizer, use_wks=use_wks, wks_normalizer=wks_normalizer, feature_type=feature_type, global_encoder=global_encoder, device=device, cache_dir=cache_dir, use_f=use_f, use_source_v=use_source_v,use_landmarks=use_landmarks, landmark_normalizer=landmark_normalizer, use_img=use_img, img_normalizer=img_normalizer, use_pix2face=use_pix2face, random_dfn_info=random_dfn_info, grad=grad, dfn_info_per_loader=dfn_info_per_loader)
+
+
+def load_data_mf_v3(data_dir, data_head, batch_size, n_identity, normalizer, use_wks=False, wks_normalizer=None, feature_type='cents&norms', only_test=False, global_encoder='pn', positional_encoding=False, number_of_pe=10, use_hks=False, device='cuda:0', cache_dir='./cache', use_chol=False, zero_mean=False, use_f=True, use_source_v=False, use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, shuffle=False, random_dfn_info=False, grad=False, dfn_info_per_loader=False):
+    print(f'Loading {data_head} data...')
     identities_train = sorted(glob(os.path.join(data_dir, data_head, 'train/*')))
     if shuffle:
         import random
@@ -242,3 +396,62 @@ def load_data_mf_v3(data_dir, data_head, batch_size, n_identity, normalizer, use
 
     return load_data(neutral_dirs, datasets, batch_size=batch_size, normalizer=normalizer, use_wks=use_wks, wks_normalizer=wks_normalizer, feature_type=feature_type, global_encoder=global_encoder, device=device, cache_dir=cache_dir, use_f=use_f, use_source_v=use_source_v, use_landmarks=use_landmarks, landmark_normalizer=landmark_normalizer, use_img=use_img, img_normalizer=img_normalizer, use_pix2face=use_pix2face,  random_dfn_info=random_dfn_info, grad=grad, dfn_info_per_loader=dfn_info_per_loader)
 
+def load_data_ict_identity(data_dir, data_head, batch_size, n_identity, normalizer, use_wks=False, wks_normalizer=None, feature_type='cents&norms', only_test=False, global_encoder='pn', device='cuda:0', cache_dir='./cache', use_landmarks=False, landmark_normalizer=None, use_img=False, img_normalizer=None, use_pix2face=False, random_dfn_info=False, grad=False, dfn_info_per_loader=False):
+    print(f'Loading {data_head} data...')
+   
+    exp_vec = np.load(os.path.join(data_dir, data_head, 'exp_vecs.npy'))
+    source_iden_vec = np.load(os.path.join(data_dir, data_head, 'source_iden_vecs.npy'))
+
+    
+    identities_train = sorted(glob(os.path.join(data_dir, data_head, 'train/*')))
+    identities_train = [_[:-21] for _ in identities_train if 'processed' in _][:n_identity]
+
+    identities_val = sorted(glob(os.path.join(data_dir, data_head, 'val/*')))
+    identities_val = [_[:-21] for _ in identities_val if 'processed' in _]
+
+    identities_test = sorted(glob(os.path.join(data_dir, data_head, 'test/*')))
+    identities_test = [_[:-21] for _ in identities_test if 'processed' in _]
+    # identities = [_[:3] for _ in identities if _.endswith('obj') and 'neu' in _]
+    if only_test:
+        identities = {'val': identities_val, 'test': identities_test}
+    else:
+        identities = {'train': identities_train, 'val': identities_val, 'test': identities_test}
+
+    identities_idx = []
+    per_source_iden_vecs = []
+    for name, v in identities.items():
+        if only_test is True:
+            if name == 'train':
+                continue
+        for _ in v:
+            identities_idx.append(int(os.path.basename(_)))
+    #         per_source_iden_vecs.append(np.load(os.path.join(data_dir, data_head, os.path.basename(_) +'_iden_target_vecs.npy'))[np.newaxis])
+    # per_source_iden_vecs = np.concatenate(per_source_iden_vecs, axis=0)
+    # per_source_iden_vecs = per_source_iden_vecs[identities_idx]
+
+    source_iden_vec = source_iden_vec[identities_idx]
+
+    if only_test is True:
+        datasets = {
+            'val': identities_val,
+            'test': identities_test
+        }
+    else:
+        datasets = {
+            'train': identities_train,
+            'val': identities_val,
+            'test': identities_test
+        }
+
+
+    neutral_dirs = [os.path.join(data_dir, data_head, os.path.basename(iden) + '_neutral.obj') for iden_list in identities.values() for iden in iden_list]
+    for d in neutral_dirs:
+        assert os.path.exists(d)
+
+    return exp_vec, source_iden_vec, *load_data(neutral_dirs, datasets, batch_size=batch_size, normalizer=normalizer, use_wks=use_wks, wks_normalizer=wks_normalizer, feature_type=feature_type, global_encoder=global_encoder, device=device, cache_dir=cache_dir, use_f=True, use_source_v=True, only_iden=True, exp_per_iden = 92, use_landmarks=use_landmarks, landmark_normalizer=landmark_normalizer, use_img=use_img, img_normalizer=img_normalizer, use_pix2face=use_pix2face, random_dfn_info=random_dfn_info, grad=grad, dfn_info_per_loader=dfn_info_per_loader)
+
+
+def load_test(data_head, device='cuda', use_pix2face=False, img_normalizer=None):
+    dataset  = test_dataset(datapath=data_head, device=device, use_pix2face=use_pix2face, img_normalizer=img_normalizer)
+    return torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0, drop_last=False)
+    

@@ -20,24 +20,32 @@ def parser():
     p.add_argument('--use_gn', default=False, action='store_true')
 
     p.add_argument('--use_zero_embd_as_neutral', default=False, action='store_true')
-    p.add_argument('--dataset', type=str)
+    p.add_argument('--dataset', type=str, choices=['FWH', 'MF', 'MF_v1', 'MF_all', 'ICT_single', 'ICT_random', 'ICT_all', 'ICT_single_random', 'ICT&MF', 'COMA', 'MF_V3', 'COMA_a2a', 'ALL', 'ICT_live', 'Adobe', 'test', 'biwi'])
 
     p.add_argument('--feature_type', default='cents&norms', choices = ['cents&norms', 'jacobians'])
 
     p.add_argument('--device', default='cuda:0')
 
+    p.add_argument('--wks', action='store_true')
     p.add_argument('--wks_std_file')
     p.add_argument('--mask', action='store_true')
+    p.add_argument('--initial_lr', default=1e-3, type=float)
+    p.add_argument('--ab_vertex', default=False, action='store_true')
 
+    # p.add_argument('--residual', default=False, action='store_true')
+    p.add_argument('--non_linear', default='relu', choices=['relu', 'leaky_relu'])
     p.add_argument('--global_pn', default=False, action='store_true')
     p.add_argument('--sampling', default=0, type=int)
     p.add_argument('--pn_norm', default=False, action='store_true')
+    # p.add_argument('--load_from_disk', default=False, action='store_true')
     p.add_argument('--zero_mean', default=False, action='store_true')
     p.add_argument('--std_file')
     p.add_argument('--save_exps', default=False, action='store_true')
     p.add_argument('--global_pn_shape', default=None, type=int)
     p.add_argument('--dfn_blocks', type=int, default=4)
     p.add_argument('--num_gn', type=int, default=64)
+    p.add_argument('--code_concat', default=False, action='store_true')
+    p.add_argument('--iden_encoder', default='pn', choices=['pn', 'dfn'])
     p.add_argument('--iden_blocks', type=int, default=4)
     p.add_argument('--landmark', default=False, action='store_true')
     p.add_argument('--landmark_file')
@@ -46,6 +54,7 @@ def parser():
     p.add_argument('--img_file')
     p.add_argument('--pix2face', default=False, action='store_true')
     p.add_argument('--img_norm', default='bn')
+    p.add_argument('--use_siren', default=False, action='store_true')
     p.add_argument('--img_feat', default=32, type=int)
     p.add_argument('--img_only_mlp', default=False, action='store_true')
     p.add_argument('--img_warp', default=False, action='store_true')
@@ -56,9 +65,55 @@ def parser():
     p.add_argument('--per_sample_dfn_info', default=False, action='store_true')
     return p
 
+def train_parser():
+    p = parser()
 
+    p.add_argument('--batch_size', type=int, default=128)
+    p.add_argument('--EPOCH', type=int, default=10000)
+    p.add_argument('--eval_freq', type=int, default=500)
+    p.add_argument('--train_range', type=int, action='append')
+    p.add_argument('--eval_range', type=int, action='append')
+    p.add_argument('--resume_id', type=int, default=0)
+    p.add_argument('--loss', type=str, default='both')
+    p.add_argument('--v_factor', type=float, default=100)
+    p.add_argument('--kld_factor', type=float, default=5e-4)
+    p.add_argument('--latent_factor', type=float, default=3e-2)
+    p.add_argument('--j_factor', type=float, default=1)
+    p.add_argument('--test', default=False, action='store_true')
+    # p.add_argument('--trans_argument', default=False, action='store_true')
+    # p.add_argument('--zero_loss', default=False, action='store_true')
+    p.add_argument('--parallel_ids', type=int, action='append', default=[])
+    p.add_argument('--pretrained_global_pn', default=False, action='store_true')
+    p.add_argument('--pretrained_global_pn_dir', type=str)
+    p.add_argument('--write', default=False, action='store_true')
+    p.add_argument('--local_rank', default=-1)
+    p.add_argument('--teacher_forcing', default=False, action='store_true', help='Whether directly supervise the decoder with the FACS parameters at the begining.')
+    p.add_argument('--teacher_forcing_noise', default=False, action='store_true')
+    p.add_argument('--debug', default=False, action='store_true')
+    p.add_argument('--load_lr', default=False, action='store_true')
+    p.add_argument('--shift_noise', default=False, action='store_true')
+    p.add_argument('--reg_factor', type=float, default=1)
+    p.add_argument('--norm_factor', default=1, type=float)
+    p.add_argument('--latent_type', default='facs', choices=['facs', 'extend'])
+    p.add_argument('--latent_reg_factor', default=0.1, type=float)
+    p.add_argument('--latent_loss_type', default='free', choices=['free','restricted'])
+    p.add_argument('--random_dfn_info', default=False, action='store_true')
+    p.add_argument('--fix_mlp', default=False, action='store_true')
+    return p
 
 def test_parser():
+    p = parser()
+    p.add_argument('--resume_id', default=0)
+    p.add_argument('--load_head')
+    p.add_argument('--load_dir', default='/media/qindafei/SSD/face/experiments')
+    p.add_argument('--test_dir')
+    p.add_argument('--test_set', type=str, action='append')
+    p.add_argument('--shift', type=float, action='append')
+    p.add_argument('--interpolate', default=False, action='store_true')
+    return p
+
+
+def test_parser_mf_latent():
     p = parser()
     p.add_argument('--mesh_file')
     p.add_argument('--mesh_to_sample', default='')

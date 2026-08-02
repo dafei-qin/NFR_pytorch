@@ -1,0 +1,80 @@
+# Dataset args
+# dataset: MF
+# dataset: COMA_no_inner
+dataset: ICT_all
+# dataset: ICT_all
+# dataset: ICT_live
+data_dir: ./data
+# data_dir: /home/qindafei/G/face/
+# data_head: COMA_no_inner
+# data_head: ICT_live_100
+train_range: [0, 0]
+eval_range: [0, 5]
+
+# Testing args
+test: False
+write: False
+save_exps: True
+
+
+# Training args
+debug: False
+save_dir: ./experiments
+EPOCH: 300
+eval_freq: 20
+resume_id: 0
+batch_size: 64
+cache_dir: ./cache
+device: cuda:0
+parallel_ids: [0]
+save_head: release_test
+initial_lr: 1e-4
+random_dfn_info: False
+grad: True
+dfn_info_per_loader: True
+load_lr: True
+
+# Feature args
+wks: False
+wks_std_file: ./data/ICT_live_100
+landmark: False
+landmark_file: ./data/ICT_live_100
+
+# Img args
+img: True
+img_enc: cnn
+img_file: ./data/MF_all_v5
+pix2face: True
+img_norm: gn
+img_feat: 128
+
+# Loss args
+loss: both
+v_factor: 10
+kld_factor: 0
+latent_factor: 0.1
+
+# Exp encoder args
+num_gn: 32
+global_encoder: dfn
+dfn_blocks: 4
+feat_dim: 128
+feature_type: cents&norms
+latent_type: extend
+latent_loss_type: free
+
+
+# Iden encoder args
+global_pn: True
+global_pn_shape: 100
+pn_norm: True
+iden_encoder: dfn
+iden_blocks: 2
+
+
+# MLP args
+mlp_hid_channel: 256
+teacher_forcing: False
+teacher_forcing_noise: True
+zero_mean: True
+std_file: ./data/ICT_live_100
