@@ -101,8 +101,8 @@ and [Multiface](https://github.com/facebookresearch/multiface). The full set
 used in the paper is about 800GB; to get the pipeline running first, we provide
 a smaller pack covering the `ICT_single_coarse` dataset.
 
-**Sample data pack** (3.0GB, *link to be added*) — 40 identities, containing
-only the files that cannot be regenerated:
+**Sample data pack** — [HKU-CGVU/NFR-sample-data](https://huggingface.co/datasets/HKU-CGVU/NFR-sample-data)
+(3.0GB), 40 identities, containing only the files that cannot be regenerated:
 
 ```
 data/ICT_single_coarse/{train,val,test}/*_processed_matrix.pkl
