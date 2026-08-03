@@ -112,7 +112,18 @@ data/ICT_live_100/gradients_std.npy   # referenced by std_file
 data/MF_all_v5/img_stat.pkl           # referenced by img_file
 ```
 
-Unpack it at the repository root and regenerate the derived tensors:
+Download it at the repository root:
+
+```python
+from huggingface_hub import snapshot_download
+snapshot_download(repo_id="HKU-CGVU/NFR-sample-data", repo_type="dataset",
+                  local_dir=".", allow_patterns="data/*")
+```
+
+`allow_patterns="data/*"` skips the dataset card, which would otherwise land on
+top of this `readme.md` on case-insensitive filesystems.
+
+Then regenerate the derived tensors:
 
 ```
 python dataset_preprocess.py \
